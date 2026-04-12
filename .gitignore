@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.npmrc
+.DS_Store
+
+# Landing page build artifacts
+landing/.next/
+landing/out/

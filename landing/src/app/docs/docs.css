@@ -1,0 +1,148 @@
+/* Docs prose styles */
+.docs-content h1 {
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #eeeeee;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.docs-content h2 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #eeeeee;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.docs-content h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #d0d0d0;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.docs-content p {
+  font-size: 14px;
+  line-height: 1.75;
+  color: #b0b0b0;
+  margin-bottom: 1rem;
+}
+
+.docs-content .subtitle {
+  font-size: 15px;
+  color: #707070;
+  margin-bottom: 2rem;
+}
+
+.docs-content ul,
+.docs-content ol {
+  font-size: 14px;
+  line-height: 1.75;
+  color: #b0b0b0;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.docs-content ul {
+  list-style-type: disc;
+}
+
+.docs-content ol {
+  list-style-type: decimal;
+}
+
+.docs-content li {
+  margin-bottom: 0.35rem;
+}
+
+.docs-content code {
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  font-size: 13px;
+  background: #111111;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  color: #4ade80;
+}
+
+.docs-content pre {
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+}
+
+.docs-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #b0b0b0;
+}
+
+.docs-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.25rem;
+  font-size: 13px;
+}
+
+.docs-content thead th {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  color: #eeeeee;
+  border-bottom: 1px solid #2a2a2a;
+  background: #0a0a0a;
+}
+
+.docs-content tbody td {
+  padding: 0.6rem 1rem;
+  color: #b0b0b0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.docs-content tbody tr:hover {
+  background: #0a0a0a;
+}
+
+.docs-content strong {
+  color: #eeeeee;
+  font-weight: 600;
+}
+
+.docs-content a {
+  color: #4ade80;
+  text-decoration: none;
+}
+
+.docs-content a:hover {
+  text-decoration: underline;
+}
+
+.docs-content .callout {
+  border-left: 3px solid #4ade80;
+  background: #0a0a0a;
+  padding: 0.75rem 1rem;
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 1.25rem;
+}
+
+.docs-content .callout p {
+  margin-bottom: 0;
+}
+
+.docs-content hr {
+  border: none;
+  border-top: 1px solid #2a2a2a;
+  margin: 2rem 0;
+}

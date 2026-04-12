@@ -1,0 +1,83 @@
+{
+  "name": "clustr-ai",
+  "version": "0.1.11",
+  "description": "Multi-agent workspace for AI coding sessions",
+  "license": "Apache-2.0",
+  "author": "Clustr",
+  "keywords": [
+    "ai",
+    "multi-agent",
+    "claude",
+    "codex",
+    "coding",
+    "terminal",
+    "orchestration"
+  ],
+  "homepage": "https://github.com/dash2199/clustr",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dash2199/clustr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dash2199/clustr/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "type": "module",
+  "bin": {
+    "clustr-ai": "./bin/clustr.js"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "package.json"
+  ],
+  "scripts": {
+    "dev:server": "tsx watch server/index.ts",
+    "dev:client": "vite",
+    "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
+    "build:server": "node esbuild.server.mjs",
+    "build:client": "vite build",
+    "build": "npm run build:server && npm run build:client",
+    "start": "node bin/clustr.js",
+    "postinstall": "node -e \"const fs=require('fs'),p=require('path'),d=p.join('node_modules','node-pty','prebuilds');if(fs.existsSync(d)){fs.readdirSync(d).forEach(a=>{const f=p.join(d,a,'spawn-helper');if(fs.existsSync(f))fs.chmodSync(f,0o755)})}\"",
+    "prepublishOnly": "npm run build && node scripts/strip-dev-deps.mjs",
+    "postpublish": "node -e \"require('fs').existsSync('package.json.bak')&&(require('fs').renameSync('package.json.bak','package.json'),console.log('Restored package.json'))\""
+  },
+  "dependencies": {
+    "better-sqlite3": "9.6.0",
+    "node-pty": "^1.1.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.1",
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/cors": "^2.8.17",
+    "@types/diff": "^8.0.0",
+    "@types/express": "^5.0.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-unicode11": "^0.9.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^5.5.0",
+    "@xyflow/react": "^12.4.4",
+    "chokidar": "^5.0.0",
+    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
+    "diff": "^8.0.4",
+    "esbuild": "^0.28.0",
+    "express": "^4.21.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "uuid": "^11.1.0",
+    "vite": "^6.0.11",
+    "zod": "^3.24.2"
+  }
+}

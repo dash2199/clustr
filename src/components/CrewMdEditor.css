@@ -1,0 +1,99 @@
+.crewmd-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0a0a0a;
+}
+
+.crewmd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  min-height: 40px;
+}
+
+.crewmd-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crewmd-path {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.crewmd-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crewmd-dirty {
+  font-size: 10px;
+  color: #fbbf24;
+  font-style: italic;
+}
+
+.crewmd-save-btn {
+  font-size: 11px;
+  padding: 4px 14px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crewmd-save-btn:hover:not(:disabled) {
+  background: #4ade80;
+  color: #000;
+  border-color: #4ade80;
+}
+
+.crewmd-save-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.crewmd-textarea {
+  flex: 1;
+  background: #0a0a0a;
+  color: #c8c8c8;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 20px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}
+
+.crewmd-textarea::placeholder {
+  color: #333;
+}
+
+.crewmd-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.crewmd-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.crewmd-textarea::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 3px;
+}
