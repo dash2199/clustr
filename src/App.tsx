@@ -31,12 +31,21 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleSpawn = useCallback(async (name: string, task: string, cwd?: string, service?: string) => {
-    await fetch('/api/spawn', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, task, cwd, service: service || 'claude' }),
-    });
-    setShowSpawnDialog(false);
+    try {
+      const res = await fetch('/api/spawn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, task, cwd, service: service || 'claude' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(`Failed to spawn agent: ${data.error || 'Unknown error'}`);
+        return;
+      }
+      setShowSpawnDialog(false);
+    } catch (err: any) {
+      alert(`Failed to spawn agent: ${err.message}`);
+    }
   }, []);
 
   const handleKill = useCallback(async (id: string) => {
