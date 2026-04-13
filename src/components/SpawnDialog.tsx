@@ -8,9 +8,10 @@ interface Props {
   onSpawn: (name: string, task: string, cwd?: string, service?: ServiceType) => void;
   onClose: () => void;
   initialMode?: Mode;
+  error?: string | null;
 }
 
-export default function SpawnDialog({ onSpawn, onClose, initialMode = 'spawn' }: Props) {
+export default function SpawnDialog({ onSpawn, onClose, initialMode = 'spawn', error }: Props) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState('');
   const [task, setTask] = useState('');
@@ -166,6 +167,7 @@ export default function SpawnDialog({ onSpawn, onClose, initialMode = 'spawn' }:
           </>
         )}
 
+        {error && <div className="dialog-error">{error}</div>}
         <div className="dialog-actions">
           <button onClick={onClose}>Cancel</button>
           <button className="primary" onClick={handleSubmit}>

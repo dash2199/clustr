@@ -30,7 +30,10 @@ export default function App() {
   const [terminalView, setTerminalView] = useState<'multi' | 'single'>('multi');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  const [spawnError, setSpawnError] = useState<string | null>(null);
+
   const handleSpawn = useCallback(async (name: string, task: string, cwd?: string, service?: string) => {
+    setSpawnError(null);
     try {
       const res = await fetch('/api/spawn', {
         method: 'POST',
@@ -39,12 +42,13 @@ export default function App() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(`Failed to spawn agent: ${data.error || 'Unknown error'}`);
+        setSpawnError(data.error || 'Unknown error');
         return;
       }
       setShowSpawnDialog(false);
+      setSpawnError(null);
     } catch (err: any) {
-      alert(`Failed to spawn agent: ${err.message}`);
+      setSpawnError(err.message || 'Failed to connect to server');
     }
   }, []);
 
@@ -387,8 +391,9 @@ export default function App() {
       {showSpawnDialog && (
         <SpawnDialog
           onSpawn={handleSpawn}
-          onClose={() => setShowSpawnDialog(false)}
+          onClose={() => { setShowSpawnDialog(false); setSpawnError(null); }}
           initialMode={dialogMode}
+          error={spawnError}
         />
       )}
     </div>
