@@ -1,6 +1,6 @@
 {
   "name": "clustr-ai",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Multi-agent workspace for AI coding sessions",
   "license": "Apache-2.0",
   "author": "Clustr",
@@ -41,7 +41,7 @@
     "build:client": "vite build",
     "build": "npm run build:server && npm run build:client",
     "start": "node bin/clustr.js",
-    "postinstall": "node -e \"const fs=require('fs'),p=require('path'),d=p.join('node_modules','node-pty','prebuilds');if(fs.existsSync(d)){fs.readdirSync(d).forEach(a=>{const f=p.join(d,a,'spawn-helper');if(fs.existsSync(f))fs.chmodSync(f,0o755)})}\"",
+    "postinstall": "node -e \"try{const p=require('path'),fs=require('fs'),d=p.join(p.dirname(require.resolve('node-pty/package.json')),'prebuilds');fs.readdirSync(d).forEach(a=>{const f=p.join(d,a,'spawn-helper');if(fs.existsSync(f))fs.chmodSync(f,0o755)})}catch(e){}\"",
     "prepublishOnly": "npm run build && node scripts/strip-dev-deps.mjs",
     "postpublish": "node -e \"require('fs').existsSync('package.json.bak')&&(require('fs').renameSync('package.json.bak','package.json'),console.log('Restored package.json'))\""
   },
