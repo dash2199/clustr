@@ -28,7 +28,7 @@ export default function App() {
   const [messageInput, setMessageInput] = useState('');
   const [messageTarget, setMessageTarget] = useState('all');
   const [terminalView, setTerminalView] = useState<'multi' | 'single'>('multi');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [showPairModal, setShowPairModal] = useState(false);
   const [pairInfo, setPairInfo] = useState<{ localUrl: string; remoteUrl: string | null; token: string; qrSvg: string } | null>(null);
   const [pairError, setPairError] = useState<string | null>(null);
@@ -299,6 +299,7 @@ export default function App() {
             onSelect={(agent) => {
               setSelectedAgentId(agent.id);
               setActiveTab('terminal');
+              if (window.innerWidth < 768) setSidebarOpen(false);
             }}
             onKill={handleKill}
             onRemove={handleRemove}

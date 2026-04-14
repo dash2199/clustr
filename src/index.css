@@ -182,20 +182,32 @@ input::placeholder, textarea::placeholder {
 /* --- Mobile touch sizing --- */
 
 @media (max-width: 767px) {
-  /* Prevent iOS auto-zoom on input focus */
+  html, body, #root {
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
   input, textarea, select {
     font-size: 16px;
   }
 
-  /* Minimum tap target for buttons */
   button {
-    min-height: 40px;
+    min-height: 36px;
   }
 
-  /* ReactFlow controls larger tap targets */
   .react-flow__controls-button {
     width: 40px !important;
     height: 40px !important;
+  }
+
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
   }
 }
 

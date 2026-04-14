@@ -1,6 +1,6 @@
 {
   "name": "clustr-ai",
-  "version": "0.1.14",
+  "version": "0.1.18",
   "description": "Multi-agent workspace for AI coding sessions",
   "license": "Apache-2.0",
   "author": "Clustr",

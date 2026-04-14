@@ -96,3 +96,24 @@
   color: var(--red);
   border-color: #3a1515;
 }
+
+@media (max-width: 767px) {
+  .context-header {
+    padding: 10px 14px;
+  }
+
+  .context-table th,
+  .context-table td {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  .context-value {
+    max-width: 200px;
+    font-size: 11px;
+  }
+
+  .context-remove-btn {
+    opacity: 1;
+  }
+}

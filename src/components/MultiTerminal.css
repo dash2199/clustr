@@ -129,3 +129,36 @@
   font-family: 'DM Sans', sans-serif;
   letter-spacing: 0.02em;
 }
+
+/* --- Mobile: vertical stacking & scrollable panes --- */
+@media (max-width: 767px) {
+  .multi-term-container {
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .multi-term-pane {
+    min-width: 0;
+    min-height: 200px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: 100% !important;
+    height: 250px !important;
+  }
+
+  .multi-term-divider.horizontal {
+    width: 100%;
+    height: 4px;
+    cursor: row-resize;
+  }
+
+  .multi-term-pane-header {
+    padding: 6px 10px;
+    min-height: 32px;
+  }
+
+  .multi-term-pane-name {
+    font-size: 12px;
+  }
+}

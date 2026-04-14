@@ -194,3 +194,49 @@
   padding-top: 20px;
   border-top: 1px solid var(--border);
 }
+
+/* --- Mobile: full-screen dialog --- */
+@media (max-width: 767px) {
+  .dialog-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .dialog {
+    width: 100%;
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 20px 16px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .dialog h2 {
+    font-size: 14px;
+  }
+
+  .dialog-mode-tab {
+    padding: 10px 12px;
+  }
+
+  .service-btn {
+    padding: 10px 12px;
+  }
+
+  .browse-row {
+    flex-direction: column;
+  }
+
+  .browse-btn {
+    width: 100%;
+  }
+
+  .dialog-actions {
+    flex-direction: column;
+  }
+
+  .dialog-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}

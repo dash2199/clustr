@@ -231,3 +231,34 @@
   color: #10b981;
   background: rgba(16, 185, 129, 0.12);
 }
+
+/* --- Mobile: always show actions (no hover on touch) --- */
+@media (max-width: 767px) {
+  .agent-item {
+    padding: 10px 14px;
+  }
+
+  .agent-running-actions,
+  .agent-done-actions {
+    max-height: 30px;
+    opacity: 1;
+    margin-top: 6px;
+  }
+
+  .remove-btn {
+    opacity: 1;
+  }
+
+  .stop-btn,
+  .restart-btn,
+  .rollback-btn,
+  .remove-btn {
+    min-height: 32px;
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+
+  .agent-list-header {
+    padding: 12px 14px 8px;
+  }
+}

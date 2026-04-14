@@ -395,3 +395,50 @@
   color: var(--text-muted);
   flex-shrink: 0;
 }
+
+@media (max-width: 767px) {
+  .prs-header {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .pr-row {
+    padding: 8px 14px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .pr-branch,
+  .pr-author,
+  .pr-time {
+    display: none;
+  }
+
+  .pr-title {
+    flex-basis: 100%;
+    order: 2;
+    white-space: normal;
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  .pr-detail {
+    padding: 12px 14px;
+  }
+
+  .branch-item {
+    padding: 6px 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .branch-message {
+    display: none;
+  }
+
+  .branch-author,
+  .branch-time {
+    display: none;
+  }
+}

@@ -117,6 +117,11 @@ export function useSocket() {
       setFileChanges([]);
     });
 
+    apiFetch('/api/agents')
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setAgents(data); })
+      .catch(() => {});
+
     apiFetch('/api/file-changes')
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setFileChanges(data); })

@@ -110,3 +110,28 @@
   width: 12px;
   text-align: center;
 }
+
+@media (max-width: 767px) {
+  .file-changes-header {
+    padding: 10px 14px;
+  }
+
+  .file-change-row {
+    padding: 8px 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .file-change-path {
+    font-size: 11px;
+    min-width: 0;
+  }
+
+  .file-change-agent {
+    order: 5;
+  }
+
+  .file-change-time {
+    order: 6;
+  }
+}

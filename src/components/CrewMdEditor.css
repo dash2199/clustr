@@ -97,3 +97,21 @@
   background: #222;
   border-radius: 3px;
 }
+
+@media (max-width: 767px) {
+  .crewmd-header {
+    padding: 8px 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .crewmd-title {
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+
+  .crewmd-textarea {
+    padding: 14px;
+    font-size: 14px;
+  }
+}

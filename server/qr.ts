@@ -24,13 +24,10 @@ export async function generatePairInfo(port: number, token: string, remoteUrl: s
   const localIp = getLocalIp();
   const localUrl = `http://${localIp}:${port}`;
 
-  const payload = JSON.stringify({
-    url: remoteUrl || localUrl,
-    localUrl,
-    token,
-  });
+  const baseUrl = remoteUrl || localUrl;
+  const qrUrl = `${baseUrl}?token=${token}`;
 
-  const qrSvg = await QRCode.toString(payload, {
+  const qrSvg = await QRCode.toString(qrUrl, {
     type: 'svg',
     color: { dark: '#ffffff', light: '#00000000' },
     margin: 1,

@@ -49,3 +49,18 @@
   color: var(--text-muted);
   font-style: italic;
 }
+
+@media (max-width: 767px) {
+  .diff-content {
+    font-size: 11px;
+  }
+
+  .diff-line {
+    padding: 0 10px;
+  }
+
+  .diff-filename {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+}
