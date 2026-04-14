@@ -95,6 +95,9 @@ const io = new SocketServer(httpServer, {
 
 // Socket.io auth middleware
 io.use((socket, next) => {
+  const addr = socket.handshake.address;
+  const isLocal = addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1';
+  if (isLocal) return next();
   const token = (socket.handshake.auth as Record<string, string>)?.token
     || (socket.handshake.query as Record<string, string>)?.token;
   if (token !== config.authToken) {
