@@ -235,3 +235,281 @@
   flex: 1;
   background: var(--bg);
 }
+
+/* --- Header hamburger (hidden on desktop) --- */
+
+.header-hamburger {
+  display: none;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 18px;
+  padding: 4px 8px;
+  cursor: pointer;
+  line-height: 1;
+  min-height: unset;
+}
+
+/* --- Header connect phone button --- */
+
+.header-connect-phone {
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 13px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.header-connect-phone:hover {
+  opacity: 1;
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* --- Pair modal --- */
+
+.pair-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pair-modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px 24px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.pair-modal-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pair-modal-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.pair-modal-close {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 4px;
+  min-height: unset;
+  line-height: 1;
+}
+
+.pair-modal-close:hover {
+  color: var(--text);
+  background: none;
+  border-color: transparent;
+}
+
+.pair-modal-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.pair-modal-loading {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 24px 0;
+}
+
+.pair-modal-error {
+  font-size: 12px;
+  color: #f87171;
+  padding: 24px 0;
+}
+
+.pair-qr {
+  width: 200px;
+  height: 200px;
+  background: #000;
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.pair-urls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pair-url-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.pair-url-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  min-width: 44px;
+}
+
+.pair-url-text {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pair-tunnel-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.pair-tunnel-hint code {
+  font-family: var(--font-mono);
+  background: var(--bg-tertiary);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+}
+
+/* --- Sidebar backdrop (mobile only, but defined here so it's available) --- */
+
+.sidebar-backdrop {
+  display: none;
+}
+
+/* --- Mobile responsive --- */
+
+@media (max-width: 767px) {
+  /* Show hamburger, hide desktop sidebar toggle */
+  .header-hamburger {
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar-toggle {
+    display: none;
+  }
+
+  /* Sidebar becomes a fixed overlay */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease, width 0.2s ease, min-width 0.2s ease;
+    width: 280px;
+    min-width: 280px;
+  }
+
+  .sidebar:not(.collapsed) {
+    transform: translateX(0);
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 280px;
+    min-width: 280px;
+    overflow: hidden;
+  }
+
+  /* Backdrop visible on mobile when sidebar is open */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 199;
+  }
+
+  /* Header: tighter padding */
+  .app-header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  /* Hide cost in header on mobile — saves space */
+  .header-total-cost {
+    display: none;
+  }
+
+  /* Tabs: scrollable strip instead of fixed row */
+  .tabs {
+    padding: 0 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0 12px;
+  }
+
+  /* Footer: stack vertically */
+  .app-footer {
+    flex-direction: column;
+    padding: 8px 12px;
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  .app-footer select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  /* Pair modal full-width on mobile */
+  .pair-modal {
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+  }
+
+  .pair-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+}

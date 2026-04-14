@@ -39,4 +39,7 @@ await Promise.all([
   }),
 ]);
 
+// Copy static assets needed by the server at runtime
+fs.copyFileSync('server/connect.html', 'dist/server/connect.html');
+
 console.log('Server bundled successfully');

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useSocket, type Agent } from './hooks/useSocket';
+import { useSocket, apiFetch, type Agent } from './hooks/useSocket';
 import AgentList from './components/AgentList';
 import AgentGraph from './components/AgentGraph';
 import Terminal from './components/Terminal';
@@ -29,13 +29,33 @@ export default function App() {
   const [messageTarget, setMessageTarget] = useState('all');
   const [terminalView, setTerminalView] = useState<'multi' | 'single'>('multi');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showPairModal, setShowPairModal] = useState(false);
+  const [pairInfo, setPairInfo] = useState<{ localUrl: string; remoteUrl: string | null; token: string; qrSvg: string } | null>(null);
+  const [pairError, setPairError] = useState<string | null>(null);
+
+  const handleShowPairModal = useCallback(async () => {
+    setShowPairModal(true);
+    setPairError(null);
+    try {
+      const res = await fetch('/api/pair');
+      if (!res.ok) {
+        const text = await res.text();
+        setPairError(text || `Error ${res.status}`);
+        return;
+      }
+      const data = await res.json();
+      setPairInfo(data);
+    } catch (err: any) {
+      setPairError(err.message || 'Failed to load pairing info');
+    }
+  }, []);
 
   const [spawnError, setSpawnError] = useState<string | null>(null);
 
   const handleSpawn = useCallback(async (name: string, task: string, cwd?: string, service?: string) => {
     setSpawnError(null);
     try {
-      const res = await fetch('/api/spawn', {
+      const res = await apiFetch('/api/spawn', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, task, cwd, service: service || 'claude' }),
@@ -67,7 +87,7 @@ export default function App() {
 
   const handleRestart = useCallback(async (agent: Agent) => {
     await fetch(`/api/agents/${agent.id}/remove`, { method: 'DELETE' });
-    const res = await fetch('/api/spawn', {
+    const res = await apiFetch('/api/spawn', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -102,7 +122,7 @@ export default function App() {
         body: JSON.stringify({ content }),
       }).catch(() => {});
 
-      await fetch('/api/messages', {
+      await apiFetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: 'user', to: target, content }),
@@ -119,7 +139,7 @@ export default function App() {
         )
       );
 
-      await fetch('/api/messages', {
+      await apiFetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: 'user', to: 'all', content }),
@@ -128,11 +148,11 @@ export default function App() {
   }, [messageInput, messageTarget, agents]);
 
   const handleClearMessages = useCallback(async () => {
-    await fetch('/api/messages', { method: 'DELETE' });
+    await apiFetch('/api/messages', { method: 'DELETE' });
   }, []);
 
   const handleClearFileChanges = useCallback(async () => {
-    await fetch('/api/file-changes', { method: 'DELETE' });
+    await apiFetch('/api/file-changes', { method: 'DELETE' });
   }, []);
 
   const handleSelectFromGraph = useCallback((agent: Agent) => {
@@ -231,6 +251,13 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
+        <button
+          className="header-hamburger"
+          onClick={() => setSidebarOpen((v) => !v)}
+          title="Toggle sidebar"
+        >
+          ☰
+        </button>
         <div className="header-brand">
           <ClustrLogo size={26} />
           <h1>Clustr</h1>
@@ -242,6 +269,11 @@ export default function App() {
           ) : null;
         })()}
         <div className="header-actions">
+          {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
+            <button className="header-connect-phone" onClick={handleShowPairModal} title="Connect phone">
+              Connect Phone
+            </button>
+          ) : null}
           <button onClick={() => openDialog('open')}>
             Open Project
           </button>
@@ -252,6 +284,7 @@ export default function App() {
       </header>
 
       <div className="app-body">
+        {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
         <aside className={`sidebar ${sidebarOpen ? '' : 'collapsed'}`}>
           <button
             className="sidebar-toggle"
@@ -395,6 +428,48 @@ export default function App() {
           initialMode={dialogMode}
           error={spawnError}
         />
+      )}
+
+      {showPairModal && (
+        <div className="pair-modal-overlay" onClick={() => setShowPairModal(false)}>
+          <div className="pair-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pair-modal-header">
+              <h2>Connect Phone</h2>
+              <button className="pair-modal-close" onClick={() => setShowPairModal(false)}>✕</button>
+            </div>
+            {pairError ? (
+              <p className="pair-modal-error">{pairError}</p>
+            ) : !pairInfo ? (
+              <p className="pair-modal-loading">Loading pairing info…</p>
+            ) : (
+              <>
+                <p className="pair-modal-hint">Scan to open Clustr on your phone's browser</p>
+                <img
+                  className="pair-qr"
+                  src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(pairInfo.qrSvg)}`}
+                  alt="QR code to connect phone"
+                />
+                <div className="pair-urls">
+                  <div className="pair-url-row">
+                    <span className="pair-url-label">Local</span>
+                    <span className="pair-url-text">{pairInfo.localUrl}?token=…</span>
+                    <button onClick={() => navigator.clipboard.writeText(`${pairInfo.localUrl}?token=${pairInfo.token}`)}>Copy</button>
+                  </div>
+                  {pairInfo.remoteUrl && (
+                    <div className="pair-url-row">
+                      <span className="pair-url-label">Remote</span>
+                      <span className="pair-url-text">{pairInfo.remoteUrl}?token=…</span>
+                      <button onClick={() => navigator.clipboard.writeText(`${pairInfo.remoteUrl}?token=${pairInfo!.token}`)}>Copy</button>
+                    </div>
+                  )}
+                  {!pairInfo.remoteUrl && (
+                    <p className="pair-tunnel-hint">Set <code>CLUSTR_TUNNEL=1</code> to enable remote access via Cloudflare Tunnel.</p>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

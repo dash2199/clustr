@@ -67,10 +67,13 @@ export function spawnAgent(
     fs.mkdirSync(MCP_CONFIG_DIR, { recursive: true });
   }
 
-  const bridgePath = path.resolve(__dirname, 'mcp-stdio-bridge.js');
+  let bridgePath = path.resolve(__dirname, 'mcp-stdio-bridge.js');
+  if (!fs.existsSync(bridgePath)) {
+    bridgePath = path.resolve(__dirname, '..', 'dist', 'server', 'mcp-stdio-bridge.js');
+  }
   if (!fs.existsSync(bridgePath)) {
     throw new Error(
-      `MCP bridge not compiled. Run "npm run build:server" first. Expected: ${bridgePath}`
+      `MCP bridge not compiled. Run "npm run build:server" first.`
     );
   }
 

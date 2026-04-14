@@ -42,6 +42,18 @@ export interface ContextEntry {
   updated_at: string;
 }
 
+function getAuthToken(): string {
+  return new URLSearchParams(window.location.search).get('token') || '';
+}
+
+function apiFetch(url: string, options?: RequestInit): Promise<Response> {
+  const token = getAuthToken();
+  const separator = url.includes('?') ? '&' : '?';
+  return fetch(token ? `${url}${separator}token=${encodeURIComponent(token)}` : url, options);
+}
+
+export { apiFetch };
+
 export function useSocket() {
   const socketRef = useRef<Socket | null>(null);
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -51,7 +63,12 @@ export function useSocket() {
   const [fileChanges, setFileChanges] = useState<FileChange[]>([]);
 
   useEffect(() => {
-    const socket = io(window.location.origin, { path: '/socket.io' });
+    const token = getAuthToken();
+    const socket = io(window.location.origin, {
+      path: '/socket.io',
+      auth: token ? { token } : undefined,
+      query: token ? { token } : undefined,
+    });
     socketRef.current = socket;
 
     socket.on('agents:updated', (data: Agent[]) => {
@@ -100,12 +117,12 @@ export function useSocket() {
       setFileChanges([]);
     });
 
-    fetch('/api/file-changes')
+    apiFetch('/api/file-changes')
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setFileChanges(data); })
       .catch(() => {});
 
-    fetch('/api/context')
+    apiFetch('/api/context')
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setContextEntries(data); })
       .catch(() => {});

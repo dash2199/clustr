@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect to Clustr</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #000;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 40px 32px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #707070;
+      font-size: 13px;
+      margin-bottom: 32px;
+    }
+    .qr-container {
+      background: #000;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 0 auto 28px;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-container svg { width: 100%; height: 100%; }
+    .or-divider {
+      color: #444;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 20px;
+    }
+    .url-row {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+    }
+    .url-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #555;
+      min-width: 48px;
+    }
+    .url-text {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      color: #b0b0b0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .copy-btn {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #888;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .copy-btn:hover { background: #252525; color: #ccc; }
+    .note {
+      font-size: 11px;
+      color: #555;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+    .note strong { color: #888; }
+    .loading { color: #555; font-size: 13px; }
+    .error-msg { color: #f87171; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Connect Phone</h1>
+    <p class="subtitle">Scan the QR code to open Clustr on your device</p>
+    <div class="qr-container" id="qr"><span class="loading">Loading…</span></div>
+    <div class="or-divider">or open manually</div>
+    <div id="urls"></div>
+    <p class="note">
+      <strong>Same network?</strong> Use the local URL.<br>
+      <strong>On cellular?</strong> Use the remote URL (requires <code>CLUSTR_TUNNEL=1</code>).<br>
+      Keep this page private — it contains your auth token.
+    </p>
+  </div>
+
+  <script>
+    function makeRow(labelText, urlText, copyText) {
+      const row = document.createElement('div');
+      row.className = 'url-row';
+
+      const label = document.createElement('span');
+      label.className = 'url-label';
+      label.textContent = labelText;
+
+      const text = document.createElement('span');
+      text.className = 'url-text';
+      text.textContent = urlText;
+
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.addEventListener('click', function() {
+        navigator.clipboard.writeText(copyText).then(function() {
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+        });
+      });
+
+      row.appendChild(label);
+      row.appendChild(text);
+      row.appendChild(btn);
+      return row;
+    }
+
+    async function load() {
+      const res = await fetch('/api/pair');
+      if (!res.ok) {
+        const span = document.createElement('span');
+        span.className = 'error-msg';
+        span.textContent = 'Failed to load pairing info. Make sure you are accessing this page from localhost.';
+        document.getElementById('qr').replaceChildren(span);
+        return;
+      }
+      const data = await res.json();
+
+      // Render QR (SVG comes from our own server — safe to set as SVG content)
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(data.qrSvg, 'image/svg+xml');
+      const svgEl = svgDoc.documentElement;
+      document.getElementById('qr').replaceChildren(svgEl);
+
+      const urls = document.getElementById('urls');
+
+      const localFull = data.localUrl + '?token=' + encodeURIComponent(data.token);
+      urls.appendChild(makeRow('Local', localFull, localFull));
+
+      if (data.remoteUrl) {
+        const remoteFull = data.remoteUrl + '?token=' + encodeURIComponent(data.token);
+        urls.appendChild(makeRow('Remote', remoteFull, remoteFull));
+      }
+
+      urls.appendChild(makeRow('Token', data.token, data.token));
+    }
+
+    load().catch(function(err) {
+      const span = document.createElement('span');
+      span.className = 'error-msg';
+      span.textContent = err.message;
+      document.getElementById('qr').replaceChildren(span);
+    });
+  </script>
+</body>
+</html>

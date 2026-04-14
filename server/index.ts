@@ -15,12 +15,27 @@ import { isGhAvailable, getRepoInfo, getRepoPRs, getPRDetail } from './github.js
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import os from 'os';
+import { getConfig } from './config.js';
+import { generatePairInfo } from './qr.js';
+import { startTunnel, stopTunnel, getTunnelUrl } from './tunnel.js';
 
 const execFileAsync = promisify(execFile);
 import { initSpawner, spawnAgent, killAgent, writeToAgent, resizeAgent, getAgentScrollback } from './spawner.js';
 import { getAgent, getAgentByName, updateAgent, deleteAgent, clearAllMessages, markStaleAgentsDone } from './db.js';
 
 const PORT = parseInt(process.env.CLUSTR_PORT || '3100', 10);
+const config = getConfig();
+
+// Start Cloudflare tunnel if requested
+if (process.env.CLUSTR_TUNNEL === '1') {
+  startTunnel(PORT).then((url) => {
+    if (url) console.log(`Clustr tunnel active: ${url}`);
+    else console.log('Clustr tunnel: cloudflared not found or timed out');
+  });
+}
+
+process.on('SIGINT', () => { stopTunnel(); process.exit(0); });
+process.on('SIGTERM', () => { stopTunnel(); process.exit(0); });
 
 const app = express();
 app.use(cors());
@@ -34,9 +49,58 @@ if (clientDir) {
   app.use(express.static(clientDir));
 }
 
+// Serve the pairing page (unauthenticated — it's the entry point for new devices)
+const connectHtmlPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'connect.html');
+const connectHtmlDevPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'server', 'connect.html');
+const connectHtml = fs.existsSync(connectHtmlPath) ? connectHtmlPath
+  : fs.existsSync(connectHtmlDevPath) ? connectHtmlDevPath : null;
+
+app.get('/connect', (_req, res) => {
+  if (connectHtml) res.sendFile(connectHtml);
+  else res.status(404).send('Connect page not found');
+});
+
+// Pairing info endpoint — only accessible from localhost for security
+app.get('/api/pair', async (req, res) => {
+  const isLocal = req.socket.localAddress === '127.0.0.1'
+    || req.socket.localAddress === '::1'
+    || req.socket.localAddress === '::ffff:127.0.0.1';
+  if (!isLocal) {
+    res.status(403).json({ error: 'Pairing info only accessible from localhost' });
+    return;
+  }
+  const info = await generatePairInfo(PORT, config.authToken, getTunnelUrl());
+  res.json(info);
+});
+
+// Auth middleware for all /api routes (except /api/pair which is handled above)
+app.use('/api', (req, res, next) => {
+  if (req.path === '/pair') return next();
+  const isLocal = req.socket.localAddress === '127.0.0.1'
+    || req.socket.localAddress === '::1'
+    || req.socket.localAddress === '::ffff:127.0.0.1';
+  if (isLocal) return next();
+  const token = (req.query.token as string) || req.headers.authorization?.replace('Bearer ', '');
+  if (token !== config.authToken) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  next();
+});
+
 const httpServer = createServer(app);
 const io = new SocketServer(httpServer, {
   cors: { origin: '*' },
+});
+
+// Socket.io auth middleware
+io.use((socket, next) => {
+  const token = (socket.handshake.auth as Record<string, string>)?.token
+    || (socket.handshake.query as Record<string, string>)?.token;
+  if (token !== config.authToken) {
+    return next(new Error('Unauthorized'));
+  }
+  next();
 });
 
 markStaleAgentsDone();
@@ -415,6 +479,8 @@ setInterval(async () => {
   } catch { /* ignore */ }
 }, 30_000);
 
-httpServer.listen(PORT, '127.0.0.1', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Clustr server running on http://localhost:${PORT}`);
+  console.log(`Connect from phone: http://localhost:${PORT}/connect`);
+  console.log(`Auth token: ${config.authToken}`);
 });
