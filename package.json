@@ -1,6 +1,6 @@
 {
   "name": "clustr-ai",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "Multi-agent workspace for AI coding sessions",
   "license": "Apache-2.0",
   "author": "Clustr",
@@ -13,14 +13,7 @@
     "terminal",
     "orchestration"
   ],
-  "homepage": "https://github.com/dash2199/clustr",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/dash2199/clustr.git"
-  },
-  "bugs": {
-    "url": "https://github.com/dash2199/clustr/issues"
-  },
+  "homepage": "https://hiclustrmvp.vercel.app/",
   "engines": {
     "node": ">=18.0.0"
   },
