@@ -4,6 +4,7 @@ import AgentList from './components/AgentList';
 import AgentGraph from './components/AgentGraph';
 import Terminal from './components/Terminal';
 import MultiTerminal from './components/MultiTerminal';
+import AgentLogs from './components/AgentLogs';
 import MessageFeed from './components/MessageFeed';
 import ContextViewer from './components/ContextViewer';
 import FileChanges from './components/FileChanges';
@@ -14,7 +15,7 @@ import SpawnDialog from './components/SpawnDialog';
 import ClustrLogo from './components/ClustrLogo';
 import './App.css';
 
-type Tab = 'graph' | 'terminal' | 'messages' | 'context' | 'files' | 'prs' | 'crewmd';
+type Tab = 'graph' | 'terminal' | 'logs' | 'messages' | 'context' | 'files' | 'prs' | 'crewmd';
 type DialogMode = 'spawn' | 'open';
 
 export default function App() {
@@ -166,7 +167,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const tabKeys: Tab[] = ['graph', 'terminal', 'files', 'prs', 'messages', 'context', 'crewmd'];
+    const tabKeys: Tab[] = ['graph', 'terminal', 'logs', 'files', 'prs', 'messages', 'context', 'crewmd'];
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -241,6 +242,7 @@ export default function App() {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'graph', label: 'Graph' },
     { key: 'terminal', label: 'Terminal' },
+    { key: 'logs', label: 'Logs' },
     { key: 'files', label: 'Files' },
     { key: 'prs', label: 'PRs' },
     { key: 'messages', label: 'Messages' },
@@ -358,6 +360,14 @@ export default function App() {
               <Terminal
                 agent={selectedAgent}
                 socket={socket}
+              />
+            )}
+            {activeTab === 'logs' && (
+              <AgentLogs
+                agents={agents}
+                selectedAgent={selectedAgent}
+                socket={socket}
+                onSelectAgent={(agent) => setSelectedAgentId(agent.id)}
               />
             )}
             {activeTab === 'messages' && (

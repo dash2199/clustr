@@ -188,6 +188,15 @@ export default function Terminal({ agent, socket }: Props) {
       sock.emit('agent:input', agent.id, data);
     });
 
+    term.attachCustomKeyEventHandler((ev) => {
+      if (ev.type === 'keydown' && ev.key === 'Enter' && ev.shiftKey) {
+        ev.preventDefault();
+        sock.emit('agent:input', agent.id, '\n');
+        return false;
+      }
+      return true;
+    });
+
     try {
       fitRef.current?.fit();
       sock.emit('agent:resize', agent.id, term.cols, term.rows);
@@ -218,6 +227,13 @@ export default function Terminal({ agent, socket }: Props) {
           if (file) doImageUpload(file);
           return;
         }
+      }
+      const text = e.clipboardData?.getData('text/plain');
+      if (text) {
+        e.preventDefault();
+        e.stopPropagation();
+        const sanitized = text.replace(/\r\n|\r|\n/g, ' ');
+        sock.emit('agent:input', agentId, sanitized);
       }
     };
 

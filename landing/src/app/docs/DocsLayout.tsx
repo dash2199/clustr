@@ -44,6 +44,7 @@ const navigation: NavGroup[] = [
     label: "Reference",
     items: [
       { title: "CLI & Configuration", href: "/docs/cli" },
+      { title: "Mobile Access", href: "/docs/mobile" },
     ],
   },
 ];

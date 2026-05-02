@@ -75,6 +75,17 @@ const features = [
       </svg>
     ),
   },
+  {
+    title: "Connect to Phone",
+    description:
+      "Monitor and control your agent swarm from any device. Scan a QR code to pair your phone — no account required. Enable a tunnel for remote access over cellular.",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" />
+        <line x1="12" y1="18" x2="12" y2="18.01" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ];
 
 export default function FeaturesSection() {
@@ -105,13 +116,13 @@ export default function FeaturesSection() {
         {features.map((f, index) => (
           <motion.div
             key={f.title}
-            className="bg-[#0a0a0a] p-10 transition-colors hover:bg-[#111111]"
+            className={`bg-[#0a0a0a] p-10 transition-colors hover:bg-[#111111]${index === features.length - 1 ? ' md:col-span-2 lg:col-span-3 md:text-center' : ''}`}
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.4, delay: 0.08 * index }}
           >
             <motion.div
-              className="w-10 h-10 rounded-[10px] flex items-center justify-center mb-5 bg-[#111111] border border-[#2a2a2a] text-[#707070]"
+              className={`w-10 h-10 rounded-[10px] flex items-center justify-center mb-5 bg-[#111111] border border-[#2a2a2a] text-[#707070]${index === features.length - 1 ? ' md:mx-auto' : ''}`}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={
                 isInView

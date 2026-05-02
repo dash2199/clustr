@@ -13,6 +13,8 @@ import { insertAgent, updateAgent } from './db.js';
 import { createCheckpoint } from './git.js';
 import { AGENT_TYPES, isValidServiceType, type ServiceType } from './agent-types.js';
 import type { Server as SocketServer } from 'socket.io';
+import { appendLogLine, captureLogChunk, flushLogRemainder } from './log-buffer.js';
+import { startCommandOutputTailing, stopCommandOutputTailing } from './command-output-tailer.js';
 
 const INSTALL_HINTS: Record<string, string> = {
   claude: 'npm install -g @anthropic-ai/claude-code',
@@ -35,6 +37,7 @@ const MAX_SCROLLBACK = 100_000;
 
 interface AgentProcess {
   pty: IPty;
+  cwd: string;
   scrollback: string;
 }
 
@@ -44,7 +47,51 @@ let onAgentListChanged: (() => void) | null = null;
 
 const MAX_AGENTS = parseInt(process.env.CLUSTR_MAX_AGENTS || '5', 10);
 
-export function initSpawner(socketIo: SocketServer, onChanged?: () => void) {
+function submitClaudeTask(shell: IPty, agentId: string, task: string): void {
+  appendLogLine({
+    agentId,
+    source: 'agent',
+    stream: 'stdout',
+    level: 'debug',
+    text: 'Submitting initial Claude task',
+  });
+
+  try {
+    shell.write(task);
+  } catch (err) {
+    appendLogLine({
+      agentId,
+      source: 'agent',
+      stream: 'stdout',
+      level: 'error',
+      text: `Failed to write initial Claude task: ${(err as Error).message}`,
+    });
+    return;
+  }
+
+  setTimeout(() => {
+    try {
+      shell.write('\r');
+      appendLogLine({
+        agentId,
+        source: 'agent',
+        stream: 'stdout',
+        level: 'debug',
+        text: 'Submitted initial Claude task with Enter',
+      });
+    } catch (err) {
+      appendLogLine({
+        agentId,
+        source: 'agent',
+        stream: 'stdout',
+        level: 'error',
+        text: `Failed to submit initial Claude task: ${(err as Error).message}`,
+      });
+    }
+  }, 300);
+}
+
+export function initSpawner(socketIo: SocketServer, onChanged?: () => void): void {
   io = socketIo;
   onAgentListChanged = onChanged ?? null;
 }
@@ -121,8 +168,9 @@ export function spawnAgent(
     env: spawnEnv,
   });
 
-  const agent: AgentProcess = { pty: shell, scrollback: '' };
+  const agent: AgentProcess = { pty: shell, cwd, scrollback: '' };
   runningAgents.set(id, agent);
+  startCommandOutputTailing(id, cwd, service);
   updateAgent(id, { status: 'running', pid: shell.pid });
 
   let lastPingTime = 0;
@@ -139,6 +187,7 @@ export function spawnAgent(
       agent.scrollback = agent.scrollback.slice(-MAX_SCROLLBACK);
     }
     io?.emit(`agent:pty:${id}`, data);
+    captureLogChunk({ agentId: id, source: 'agent', stream: 'stdout', data });
 
     const clean = data.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
     const costMatch = clean.match(totalCostRegex) || clean.match(costRegex);
@@ -169,6 +218,8 @@ export function spawnAgent(
   });
 
   shell.onExit(({ exitCode }) => {
+    flushLogRemainder({ agentId: id, source: 'agent', stream: 'stdout' });
+    stopCommandOutputTailing(id);
     runningAgents.delete(id);
     updateAgent(id, { status: 'done' });
     io?.emit(`agent:pty:${id}`, `\r\n\x1b[33m--- Process exited (code: ${exitCode}) ---\x1b[0m\r\n`);
@@ -184,7 +235,7 @@ export function spawnAgent(
     // For claude, write the task into the PTY prompt
     // For codex exec, the task is already in the args — just mark as sent
     if (service === 'claude') {
-      shell.write(task + '\r');
+      submitClaudeTask(shell, id, task);
     }
   };
 
@@ -222,6 +273,7 @@ export function resizeAgent(id: string, cols: number, rows: number): boolean {
 export function killAgent(id: string): boolean {
   const agent = runningAgents.get(id);
   if (!agent) return false;
+  stopCommandOutputTailing(id);
   agent.pty.kill();
   return true;
 }

@@ -80,27 +80,45 @@ function start() {
 
   const port = process.env.CLUSTR_PORT || '3100';
 
-  const server = spawn('node', [path.join(root, 'dist', 'server', 'index.js')], {
-    cwd: root,
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      CLUSTR_PORT: port,
-      CLUSTR_SERVE_CLIENT: hasClient ? clientDir : '',
-    },
-  });
-
-  console.log(`\n  Clustr is starting on http://localhost:${port}\n`);
-
   if (!hasClient) {
     console.log('  (Client not built — run "npm run build:client" for the full UI)');
     console.log('  API is still available at /api/*\n');
   }
 
-  process.on('SIGINT', () => { server.kill('SIGINT'); process.exit(); });
-  process.on('SIGTERM', () => { server.kill('SIGTERM'); process.exit(); });
+  let shuttingDown = false;
+  let restartDelay = 1000;
+  let currentServer = null;
 
-  server.on('exit', (code) => {
-    process.exit(code ?? 0);
-  });
+  function spawnServer() {
+    currentServer = spawn('node', [path.join(root, 'dist', 'server', 'index.js')], {
+      cwd: root,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        CLUSTR_PORT: port,
+        CLUSTR_SERVE_CLIENT: hasClient ? clientDir : '',
+      },
+    });
+
+    // Reset restart delay after 30s of stability
+    const stabilityTimer = setTimeout(() => { restartDelay = 1000; }, 30000);
+
+    currentServer.on('exit', (code, signal) => {
+      clearTimeout(stabilityTimer);
+      if (shuttingDown) { process.exit(code ?? 0); return; }
+      if (signal === 'SIGINT' || signal === 'SIGTERM') { process.exit(0); return; }
+      console.error(`\n  [clustr] Server exited unexpectedly (code: ${code ?? signal}). Restarting in ${restartDelay / 1000}s...\n`);
+      setTimeout(() => {
+        restartDelay = Math.min(restartDelay * 2, 30000);
+        spawnServer();
+      }, restartDelay);
+    });
+  }
+
+  console.log(`\n  Clustr is starting on http://localhost:${port}\n`);
+
+  spawnServer();
+
+  process.on('SIGINT', () => { shuttingDown = true; if (currentServer) currentServer.kill('SIGINT'); });
+  process.on('SIGTERM', () => { shuttingDown = true; if (currentServer) currentServer.kill('SIGTERM'); });
 }

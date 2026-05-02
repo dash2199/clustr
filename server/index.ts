@@ -10,6 +10,8 @@ import { initBroker, sendMessage, readMessages, broadcastMessage, getAllMessages
 import { initContext, readContext, writeContext, removeContext } from './context.js';
 import { initCrewMd, readCrewMd, writeCrewMd } from './crewmd.js';
 import { initFileWatcher, startWatching, getFileChanges, clearFileChanges } from './filewatcher.js';
+import { initLogBuffer, getLogs, clearLogs, type LogSource } from './log-buffer.js';
+import { startCommandOutputTailing, stopCommandOutputTailing } from './command-output-tailer.js';
 import { getAgentDiff, rollbackToCheckpoint, listBranches } from './git.js';
 import { isGhAvailable, getRepoInfo, getRepoPRs, getPRDetail } from './github.js';
 import { execFile } from 'child_process';
@@ -20,7 +22,14 @@ import { generatePairInfo } from './qr.js';
 import { startTunnel, stopTunnel, getTunnelUrl } from './tunnel.js';
 
 const execFileAsync = promisify(execFile);
-import { initSpawner, spawnAgent, killAgent, writeToAgent, resizeAgent, getAgentScrollback } from './spawner.js';
+import {
+  initSpawner,
+  spawnAgent,
+  killAgent,
+  writeToAgent,
+  resizeAgent,
+  getAgentScrollback,
+} from './spawner.js';
 import { getAgent, getAgentByName, updateAgent, deleteAgent, clearAllMessages, markStaleAgentsDone } from './db.js';
 
 const PORT = parseInt(process.env.CLUSTR_PORT || '3100', 10);
@@ -36,6 +45,22 @@ if (process.env.CLUSTR_TUNNEL === '1') {
 
 process.on('SIGINT', () => { stopTunnel(); process.exit(0); });
 process.on('SIGTERM', () => { stopTunnel(); process.exit(0); });
+
+process.on('uncaughtException', (err: NodeJS.ErrnoException) => {
+  if (err?.code === 'EMFILE' || err?.code === 'ENOSPC') {
+    console.error(
+      `[clustr] ${err.code}: file-descriptor limit reached. Raise with \`ulimit -n 65536\` or narrow agent cwd. Server continues.`
+    );
+  } else {
+    console.error('[clustr] uncaught exception (server continues):', err);
+  }
+  // Always return — never let uncaughtException kill the process
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[clustr] unhandled rejection (server continues):', reason);
+  // Swallow — unhandledRejection is non-fatal in Node 18+ but log it
+});
 
 const app = express();
 app.use(cors());
@@ -108,6 +133,7 @@ io.use((socket, next) => {
 
 markStaleAgentsDone();
 
+initLogBuffer(io);
 initBroker(io);
 initContext(io);
 initCrewMd(io);
@@ -115,6 +141,17 @@ initFileWatcher(io);
 initSpawner(io, () => {
   io.emit('agents:updated', getActiveAgents());
 });
+
+for (const agent of getActiveAgents()) {
+  if (
+    agent.status === 'running' &&
+    (agent.service === 'claude' || agent.service === 'codex') &&
+    typeof agent.id === 'string' &&
+    typeof agent.agent_cwd === 'string'
+  ) {
+    startCommandOutputTailing(agent.id, agent.agent_cwd, agent.service);
+  }
+}
 
 // --- Agent routes ---
 
@@ -146,13 +183,16 @@ app.post('/api/agents/:id/ping', (req, res) => {
 
 app.delete('/api/agents/:id', (req, res) => {
   deregisterAgent(req.params.id);
+  stopCommandOutputTailing(req.params.id);
   killAgent(req.params.id);
   io.emit('agents:updated', getActiveAgents());
   res.json({ status: 'deregistered' });
 });
 
 app.delete('/api/agents/:id/remove', (req, res) => {
+  stopCommandOutputTailing(req.params.id);
   killAgent(req.params.id);
+  clearLogs(req.params.id);
   deleteAgent(req.params.id);
   io.emit('agents:updated', getActiveAgents());
   res.json({ status: 'removed' });
@@ -428,6 +468,16 @@ app.post('/api/agents/:id/message', (req, res) => {
 
 app.get('/api/agents/:id/scrollback', (req, res) => {
   res.json({ scrollback: getAgentScrollback(req.params.id) });
+});
+
+function parseLogSource(value: unknown): LogSource | undefined {
+  return value === 'agent' ? value : undefined;
+}
+
+// --- Get normalized log lines for late-joining clients ---
+
+app.get('/api/agents/:id/logs', (req, res) => {
+  res.json({ logs: getLogs(req.params.id, parseLogSource(req.query.source)) });
 });
 
 // --- Socket.io ---

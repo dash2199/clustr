@@ -10,8 +10,8 @@ import db from './db.js';
 const execFileAsync = promisify(execFile);
 
 let io: SocketServer | null = null;
-let watcher: FSWatcher | null = null;
-let defaultBranch: string | null = null;
+const watchers: Map<string, FSWatcher> = new Map();
+const defaultBranches: Map<string, string> = new Map();
 
 db.prepare(`
   CREATE TABLE IF NOT EXISTS file_changes (
@@ -64,58 +64,145 @@ export function initFileWatcher(socketIo: SocketServer) {
   io = socketIo;
 }
 
-export function startWatching(cwd: string) {
-  stopWatching();
-  defaultBranch = null;
+const IGNORED_DIRS = new Set([
+  '.git',
+  'node_modules',
+  'dist',
+  'build',
+  'out',
+  '.next',
+  '.nuxt',
+  '.svelte-kit',
+  'target',
+  'coverage',
+  '.coverage',
+  '.cache',
+  '.tmp',
+  '.temp',
+  'tmp',
+  'temp',
+  'logs',
+  'log',
+  '__pycache__',
+  '.pytest_cache',
+  '.mypy_cache',
+  '.ruff_cache',
+  '.tox',
+  '.venv',
+  'venv',
+  'env',
+  '.gradle',
+  '.idea',
+  '.vscode',
+  '.terraform',
+  '.vercel',
+  '.turbo',
+  '.parcel-cache',
+  '.yarn',
+  '.pnpm-store',
+  'vendor',
+  'bower_components',
+]);
 
-  detectDefaultBranch(cwd).then((branch) => {
-    defaultBranch = branch;
-  }).catch(() => {
-    defaultBranch = 'master';
-  });
+const IGNORED_FILES = new Set([
+  'package-lock.json',
+  'yarn.lock',
+  'pnpm-lock.yaml',
+  'bun.lockb',
+  '.DS_Store',
+  'Thumbs.db',
+]);
 
-  watcher = chokidar.watch(cwd, {
-    ignored: (filePath: string) => {
-      const rel = path.relative(cwd, filePath);
-      const parts = rel.split(path.sep);
-      return parts.includes('.git')
-        || parts.includes('node_modules')
-        || parts.includes('dist')
-        || parts.includes('.next')
-        || parts.includes('__pycache__')
-        || parts.includes('logs')
-        || parts.includes('log')
-        || parts.includes('.cache')
-        || parts.includes('.tmp')
-        || parts.includes('target')
-        || parts.includes('build')
-        || parts.includes('coverage')
-        || rel.endsWith('.pyc')
-        || rel.endsWith('.log')
-        || rel === 'package-lock.json'
-        || rel === 'yarn.lock'
-        || rel === 'pnpm-lock.yaml';
-    },
-    persistent: true,
-    ignoreInitial: true,
-    awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
-  });
+const IGNORED_EXTENSIONS = new Set([
+  '.pyc',
+  '.log',
+  '.swp',
+  '.swo',
+]);
 
-  watcher.on('add', (filePath: string) => handleChange(filePath, 'add', cwd));
-  watcher.on('change', (filePath: string) => handleChange(filePath, 'change', cwd));
-  watcher.on('unlink', (filePath: string) => handleChange(filePath, 'unlink', cwd));
+function shouldIgnore(cwd: string, filePath: string): boolean {
+  const rel = path.relative(cwd, filePath);
+  if (rel.startsWith('..')) return true;
+  const parts = rel.split(path.sep);
+  for (const part of parts) {
+    if (IGNORED_DIRS.has(part)) return true;
+  }
+  const base = path.basename(rel);
+  if (IGNORED_FILES.has(base)) return true;
+  const ext = path.extname(base);
+  if (IGNORED_EXTENSIONS.has(ext)) return true;
+  return false;
 }
 
-export function stopWatching() {
-  if (watcher) {
-    watcher.close();
-    watcher = null;
+export function startWatching(cwd: string) {
+  const absCwd = path.resolve(cwd);
+
+  if (watchers.has(absCwd)) return;
+
+  for (const existing of watchers.keys()) {
+    if (absCwd === existing || absCwd.startsWith(existing + path.sep)) {
+      return;
+    }
   }
+
+  detectDefaultBranch(absCwd).then((branch) => {
+    defaultBranches.set(absCwd, branch);
+  }).catch(() => {
+    defaultBranches.set(absCwd, 'master');
+  });
+
+  let watcher: FSWatcher;
+  try {
+    watcher = chokidar.watch(absCwd, {
+      ignored: (filePath: string) => shouldIgnore(absCwd, filePath),
+      persistent: true,
+      ignoreInitial: true,
+      depth: 8,
+      awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
+    });
+  } catch (err) {
+    console.error(`[filewatcher] failed to start watcher for ${absCwd}:`, (err as Error).message);
+    return;
+  }
+
+  watcher.on('add', (filePath: string) => handleChange(filePath, 'add', absCwd));
+  watcher.on('change', (filePath: string) => handleChange(filePath, 'change', absCwd));
+  watcher.on('unlink', (filePath: string) => handleChange(filePath, 'unlink', absCwd));
+  watcher.on('error', (err: unknown) => {
+    const e = err as NodeJS.ErrnoException;
+    if (e?.code === 'EMFILE' || e?.code === 'ENOSPC') {
+      console.error(
+        `[filewatcher] ${e.code}: too many open files. Raise the FD limit (\`ulimit -n 65536\`) or narrow the agent cwd. Watcher for ${absCwd} is degraded.`
+      );
+    } else {
+      console.error(`[filewatcher] watcher error for ${absCwd}:`, e?.message || e);
+    }
+  });
+
+  watchers.set(absCwd, watcher);
+}
+
+export function stopWatching(cwd?: string) {
+  if (cwd) {
+    const absCwd = path.resolve(cwd);
+    const w = watchers.get(absCwd);
+    if (w) {
+      w.close().catch(() => { /* ignore */ });
+      watchers.delete(absCwd);
+      defaultBranches.delete(absCwd);
+    }
+    return;
+  }
+  for (const [, w] of watchers) {
+    w.close().catch(() => { /* ignore */ });
+  }
+  watchers.clear();
+  defaultBranches.clear();
 }
 
 async function handleChange(absolutePath: string, changeType: string, cwd: string) {
   const relativePath = path.relative(cwd, absolutePath);
-  const branch = defaultBranch || 'master';
+  const branch = defaultBranches.get(cwd) || 'master';
   let diffText: string | null = null;
 
   try {

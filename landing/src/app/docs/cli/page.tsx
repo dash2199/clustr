@@ -35,8 +35,60 @@ export default function CliPage() {
             <td><code>5</code></td>
             <td>Maximum number of concurrent agents</td>
           </tr>
+          <tr>
+            <td><code>CLUSTR_TUNNEL</code></td>
+            <td><code>—</code></td>
+            <td>Set to <code>1</code> to start a Cloudflare tunnel for remote (cellular) access</td>
+          </tr>
         </tbody>
       </table>
+
+      <h2>Mobile access</h2>
+      <p>
+        Clustr has built-in support for monitoring and controlling your agent
+        swarm from a phone or tablet on the same network.
+      </p>
+      <ol>
+        <li>
+          Click the <strong>Connect Phone</strong> button (📱) in the dashboard
+          header.
+        </li>
+        <li>
+          A QR code will appear — scan it with your phone&apos;s camera.
+        </li>
+        <li>
+          Your phone opens the dashboard with a secure session token. No
+          account or sign-in needed.
+        </li>
+      </ol>
+      <p>
+        The dashboard is a PWA — you can add it to your home screen for a
+        native-app feel.
+      </p>
+
+      <h2>Remote access over cellular</h2>
+      <p>
+        To reach your Clustr instance from outside your local network (e.g.
+        over a cellular connection), start Clustr with the tunnel flag:
+      </p>
+      <pre>
+        <code>CLUSTR_TUNNEL=1 npx clustr-ai</code>
+      </pre>
+      <p>
+        This starts a Cloudflare tunnel and displays a public URL you can
+        use from anywhere. The pairing QR code will automatically include the
+        tunnel URL.
+      </p>
+      <div className="callout">
+        <p>
+          <strong>Prerequisite:</strong> <code>cloudflared</code> must be
+          installed. Install it with{" "}
+          <code>brew install cloudflared</code> (macOS) or from the{" "}
+          <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank" rel="noopener noreferrer">
+            Cloudflare downloads page
+          </a>.
+        </p>
+      </div>
 
       <h2>Data storage</h2>
       <p>
