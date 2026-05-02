@@ -1,8 +1,10 @@
 # Clustr
 
-Run multiple AI coding agents at once and watch them work together from a single dashboard.
+Local multi-agent workspace for AI coding.
 
-Clustr lets you create a team of AI agents, assign them tasks, and let them collaborate — all from your browser. Each agent works independently but can talk to the others, share notes, and coordinate automatically.
+Clustr lets you run Claude Code and Codex agents side by side, monitor them from a live dashboard, and give them MCP tools to collaborate across your codebase. Agents can message each other, share context, spawn teammates, track file changes, and coordinate work across frontend, backend, tests, docs, and services.
+
+Website: [hiclustrmvp.vercel.app](https://hiclustrmvp.vercel.app/)
 
 ## Quick Start
 
@@ -16,6 +18,7 @@ Open [http://localhost:3100](http://localhost:3100) in your browser.
 
 - **Node.js 18+**
 - **Claude Code CLI** — `npm install -g @anthropic-ai/claude-code`
+- **OpenAI Codex CLI** — optional, for Codex agents
 
 ## Environment Variables
 
@@ -23,6 +26,21 @@ Open [http://localhost:3100](http://localhost:3100) in your browser.
 |---|---|---|
 | `CLUSTR_PORT` | `3100` | Server port |
 | `CLUSTR_MAX_AGENTS` | `5` | Max concurrent agents |
+| `CLUSTR_TUNNEL` | unset | Set to `1` to start a Cloudflare tunnel for mobile/remote access |
+
+## Why Clustr
+
+Most AI coding tools assume one agent should understand the whole project. Real engineering work is split across services, repos, tests, docs, and owners.
+
+Clustr gives each agent a focused workspace and a shared coordination layer:
+
+- **Multi-agent orchestration** — spawn multiple coding agents and watch them work in parallel
+- **Inter-agent messaging** — agents can ask each other questions and hand off findings
+- **Shared context** — one agent can write discoveries that every other agent can read
+- **Live terminal dashboard** — inspect PTYs, logs, messages, file changes, and agent status
+- **Claude + Codex support** — run different agent providers side by side
+- **Git checkpoints** — checkpoint before agent work and roll back if needed
+- **Mobile access** — pair a phone with a QR code and monitor your swarm away from your desk
 
 ## How It Works
 
@@ -33,8 +51,9 @@ Open [http://localhost:3100](http://localhost:3100) in your browser.
 
 ## Security Notes
 
-- **Local only** — The server binds to `127.0.0.1`. Do not expose to untrusted networks without a reverse proxy and authentication.
-- **No authentication** — The API has no auth layer. Any process on localhost can control agents.
+- **Local-first** — Clustr runs on your machine and stores runtime state under `~/.clustr/`.
+- **Remote auth token** — non-local API and Socket.io access requires the generated auth token.
+- **Pairing endpoint is local-only** — the QR pairing details are only served from localhost.
 - **Environment inheritance** — Spawned agents inherit your shell environment (including API keys and tokens). Be mindful of what's in your env.
 - **Agent permissions** — Claude agents run with `--dangerously-skip-permissions` for unattended operation. Review the [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code) for implications.
 
