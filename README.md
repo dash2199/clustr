@@ -1,8 +1,10 @@
 # Clustr
 
-Local multi-agent workspace for AI coding.
+Run multiple AI coding helpers from one local dashboard.
 
-Clustr lets you run Claude Code and Codex agents side by side, monitor them from a live dashboard, and give them MCP tools to collaborate across your codebase. Agents can message each other, share context, spawn teammates, track file changes, and coordinate work across frontend, backend, tests, docs, and services.
+Clustr helps you split work across several AI agents, watch what each one is doing, and let them coordinate with each other. You can keep one agent on the frontend, another on the backend, another on tests or docs, and follow everything from one place.
+
+You can also open your own command terminal for any agent's project folder. That means you can run things like `git status`, `npm test`, or `git pull` yourself without sending those commands to the AI.
 
 Website: [hiclustrmvp.vercel.app](https://hiclustrmvp.vercel.app/)
 
@@ -37,7 +39,8 @@ Clustr gives each agent a focused workspace and a shared coordination layer:
 - **Multi-agent orchestration** — spawn multiple coding agents and watch them work in parallel
 - **Inter-agent messaging** — agents can ask each other questions and hand off findings
 - **Shared context** — one agent can write discoveries that every other agent can read
-- **Live terminal dashboard** — inspect PTYs, logs, messages, file changes, and agent status
+- **Live work dashboard** — see agents, conversations, file changes, and progress in one place
+- **Your own command terminal** — run your own commands in the same project folder without the AI seeing them
 - **Claude + Codex support** — run different agent providers side by side
 - **Git checkpoints** — checkpoint before agent work and roll back if needed
 - **Mobile access** — pair a phone with a QR code and monitor your swarm away from your desk
