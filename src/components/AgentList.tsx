@@ -31,6 +31,14 @@ export default function AgentList({ agents, selectedId, onSelect, onKill, onRemo
           key={agent.id}
           className={`agent-item ${agent.id === selectedId ? 'selected' : ''}`}
           onClick={() => onSelect(agent)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onSelect(agent);
+            }
+          }}
+          role="button"
+          tabIndex={0}
         >
           <div className="agent-item-header">
             <span

@@ -12,6 +12,7 @@ import { initCrewMd, readCrewMd, writeCrewMd } from './crewmd.js';
 import { initFileWatcher, startWatching, getFileChanges, clearFileChanges } from './filewatcher.js';
 import { initLogBuffer, getLogs, clearLogs, type LogSource } from './log-buffer.js';
 import { startCommandOutputTailing, stopCommandOutputTailing } from './command-output-tailer.js';
+import { initUserShell, startUserShell, stopUserShell, writeToUserShell, resizeUserShell, getUserShellScrollback } from './user-shell.js';
 import { getAgentDiff, rollbackToCheckpoint, listBranches } from './git.js';
 import { isGhAvailable, getRepoInfo, getRepoPRs, getPRDetail } from './github.js';
 import { execFile } from 'child_process';
@@ -134,6 +135,7 @@ io.use((socket, next) => {
 markStaleAgentsDone();
 
 initLogBuffer(io);
+initUserShell(io);
 initBroker(io);
 initContext(io);
 initCrewMd(io);
@@ -191,6 +193,7 @@ app.delete('/api/agents/:id', (req, res) => {
 
 app.delete('/api/agents/:id/remove', (req, res) => {
   stopCommandOutputTailing(req.params.id);
+  stopUserShell(req.params.id);
   killAgent(req.params.id);
   clearLogs(req.params.id);
   deleteAgent(req.params.id);
@@ -470,6 +473,27 @@ app.get('/api/agents/:id/scrollback', (req, res) => {
   res.json({ scrollback: getAgentScrollback(req.params.id) });
 });
 
+// --- User shell routes ---
+
+app.post('/api/agents/:id/user-shell/start', (req, res) => {
+  const agent = getAgent(req.params.id);
+  if (!agent || typeof agent.agent_cwd !== 'string' || !agent.agent_cwd) {
+    res.status(404).json({ error: 'Agent cwd not found' });
+    return;
+  }
+
+  try {
+    startUserShell(req.params.id, agent.agent_cwd);
+    res.json({ status: 'started', cwd: agent.agent_cwd });
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/api/agents/:id/user-shell/scrollback', (req, res) => {
+  res.json({ scrollback: getUserShellScrollback(req.params.id) });
+});
+
 function parseLogSource(value: unknown): LogSource | undefined {
   return value === 'agent' ? value : undefined;
 }
@@ -495,6 +519,16 @@ io.on('connection', (socket) => {
   // Client requests terminal resize
   socket.on('agent:resize', (agentId: string, cols: number, rows: number) => {
     resizeAgent(agentId, cols, rows);
+  });
+
+  // Client writes keystrokes to a user-controlled shell PTY
+  socket.on('user-shell:input', (agentId: string, data: string) => {
+    writeToUserShell(agentId, data);
+  });
+
+  // Client requests user shell terminal resize
+  socket.on('user-shell:resize', (agentId: string, cols: number, rows: number) => {
+    resizeUserShell(agentId, cols, rows);
   });
 });
 

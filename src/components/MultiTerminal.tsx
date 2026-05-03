@@ -395,6 +395,7 @@ export default function MultiTerminal({ agents, socket, onSelectAgent }: Props) 
             className={`multi-term-pane ${focusedId === agent.id ? 'focused' : ''}`}
             style={{ flexBasis: `${effectiveSizes[idx]}%` }}
             onClick={() => handlePaneClick(agent)}
+            onPointerDownCapture={() => handlePaneClick(agent)}
           >
             <div className="multi-term-pane-header">
               <span

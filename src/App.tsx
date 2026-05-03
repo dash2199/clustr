@@ -4,6 +4,7 @@ import AgentList from './components/AgentList';
 import AgentGraph from './components/AgentGraph';
 import Terminal from './components/Terminal';
 import MultiTerminal from './components/MultiTerminal';
+import UserShell from './components/UserShell';
 import AgentLogs from './components/AgentLogs';
 import MessageFeed from './components/MessageFeed';
 import ContextViewer from './components/ContextViewer';
@@ -29,6 +30,7 @@ export default function App() {
   const [messageInput, setMessageInput] = useState('');
   const [messageTarget, setMessageTarget] = useState('all');
   const [terminalView, setTerminalView] = useState<'multi' | 'single'>('multi');
+  const [showUserShell, setShowUserShell] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [showPairModal, setShowPairModal] = useState(false);
   const [pairInfo, setPairInfo] = useState<{ localUrl: string; remoteUrl: string | null; token: string; qrSvg: string } | null>(null);
@@ -239,6 +241,10 @@ export default function App() {
     return () => document.removeEventListener('keydown', handleKeyDown, true);
   }, [agents, selectedAgentId]);
 
+  useEffect(() => {
+    if (!selectedAgent?.agent_cwd) setShowUserShell(false);
+  }, [selectedAgent?.agent_cwd]);
+
   const tabs: { key: Tab; label: string }[] = [
     { key: 'graph', label: 'Graph' },
     { key: 'terminal', label: 'Terminal' },
@@ -323,6 +329,15 @@ export default function App() {
             ))}
             {activeTab === 'terminal' && (
               <div className="terminal-view-toggle">
+                {selectedAgent?.agent_cwd && (
+                  <button
+                    className={`user-shell-toggle ${showUserShell ? 'active' : ''}`}
+                    onClick={() => setShowUserShell((open) => !open)}
+                    title="Open a user-controlled shell in the selected agent directory"
+                  >
+                    User Shell
+                  </button>
+                )}
                 <button
                   className={`view-toggle-btn ${terminalView === 'multi' ? 'active' : ''}`}
                   onClick={() => setTerminalView('multi')}
@@ -360,6 +375,13 @@ export default function App() {
               <Terminal
                 agent={selectedAgent}
                 socket={socket}
+              />
+            )}
+            {activeTab === 'terminal' && showUserShell && (
+              <UserShell
+                agent={selectedAgent}
+                socket={socket}
+                onClose={() => setShowUserShell(false)}
               />
             )}
             {activeTab === 'logs' && (

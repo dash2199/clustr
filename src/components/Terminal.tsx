@@ -281,6 +281,7 @@ export default function Terminal({ agent, socket }: Props) {
       <div
         ref={wrapperRef}
         onClick={handleWrapperClick}
+        onPointerDownCapture={handleWrapperClick}
         style={{
           width: '100%',
           height: '100%',
