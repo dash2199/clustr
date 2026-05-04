@@ -16,47 +16,6 @@ export async function isGitRepo(cwd: string): Promise<boolean> {
   }
 }
 
-export async function isRepoDirty(cwd: string): Promise<boolean> {
-  try {
-    const { stdout } = await git(['status', '--porcelain'], cwd);
-    return stdout.trim().length > 0;
-  } catch {
-    return false;
-  }
-}
-
-export async function createCheckpoint(cwd: string, agentName: string): Promise<string | null> {
-  if (!(await isGitRepo(cwd))) return null;
-  if (!(await isRepoDirty(cwd))) {
-    const { stdout } = await git(['rev-parse', 'HEAD'], cwd);
-    return stdout.trim();
-  }
-
-  try {
-    await git(['add', '-A'], cwd);
-    await git(['commit', '-m', `clustr: checkpoint before ${agentName}`], cwd);
-    const { stdout } = await git(['rev-parse', 'HEAD'], cwd);
-    return stdout.trim();
-  } catch {
-    try {
-      const { stdout } = await git(['rev-parse', 'HEAD'], cwd);
-      return stdout.trim();
-    } catch {
-      return null;
-    }
-  }
-}
-
-export async function getAgentDiff(cwd: string, checkpointHash: string): Promise<string> {
-  if (!(await isGitRepo(cwd))) return '';
-  try {
-    const { stdout } = await git(['diff', `${checkpointHash}..HEAD`], cwd);
-    return stdout;
-  } catch {
-    return '';
-  }
-}
-
 export interface BranchInfo {
   name: string;
   lastCommitDate: string;
@@ -142,14 +101,3 @@ export async function listBranches(cwd: string): Promise<{ current: string; bran
   }
 }
 
-export async function rollbackToCheckpoint(cwd: string, checkpointHash: string): Promise<{ success: boolean; message: string }> {
-  if (!(await isGitRepo(cwd))) {
-    return { success: false, message: 'Not a git repository' };
-  }
-  try {
-    await git(['reset', '--hard', checkpointHash], cwd);
-    return { success: true, message: `Rolled back to ${checkpointHash.slice(0, 8)}` };
-  } catch (err) {
-    return { success: false, message: (err as Error).message };
-  }
-}

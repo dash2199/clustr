@@ -76,11 +76,10 @@ export default function ArchitecturePage() {
         own bridge that connects it to the workspace.
       </p>
 
-      <h3>Git Integration</h3>
+      <h3>Project Tracking</h3>
       <p>
-        Before each agent starts, Clustr takes a snapshot of your code (a git
-        checkpoint). Later, you can see exactly what the agent changed (as a
-        diff) or roll everything back to how it was before.
+        Clustr watches the project folder while agents work so you can see
+        which files changed and follow progress from the dashboard.
       </p>
 
       <h2>What the dashboard shows</h2>

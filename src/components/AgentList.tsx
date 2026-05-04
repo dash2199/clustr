@@ -7,7 +7,6 @@ interface Props {
   onSelect: (agent: Agent) => void;
   onKill: (id: string) => void;
   onRemove: (id: string) => void;
-  onRollback: (id: string) => void;
   onRestart: (agent: Agent) => void;
 }
 
@@ -19,7 +18,7 @@ const statusColor: Record<string, string> = {
   dead: 'var(--red)',
 };
 
-export default function AgentList({ agents, selectedId, onSelect, onKill, onRemove, onRollback, onRestart }: Props) {
+export default function AgentList({ agents, selectedId, onSelect, onKill, onRemove, onRestart }: Props) {
   return (
     <div className="agent-list">
       <div className="agent-list-header">Agents ({agents.length})</div>
@@ -79,19 +78,6 @@ export default function AgentList({ agents, selectedId, onSelect, onKill, onRemo
               >
                 Restart
               </button>
-              {agent.checkpoint_hash && (
-                <button
-                  className="rollback-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm(`Rollback all changes made by "${agent.name}"? This will reset files to the state before the agent started.`)) {
-                      onRollback(agent.id);
-                    }
-                  }}
-                >
-                  Rollback
-                </button>
-              )}
               <button
                 className="remove-btn"
                 onClick={(e) => {

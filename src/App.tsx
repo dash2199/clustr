@@ -84,10 +84,6 @@ export default function App() {
     if (selectedAgentId === id) setSelectedAgentId(null);
   }, [selectedAgentId]);
 
-  const handleRollback = useCallback(async (id: string) => {
-    await fetch(`/api/agents/${id}/rollback`, { method: 'POST' });
-  }, []);
-
   const handleRestart = useCallback(async (agent: Agent) => {
     await fetch(`/api/agents/${agent.id}/remove`, { method: 'DELETE' });
     const res = await apiFetch('/api/spawn', {
@@ -311,7 +307,6 @@ export default function App() {
             }}
             onKill={handleKill}
             onRemove={handleRemove}
-            onRollback={handleRollback}
             onRestart={handleRestart}
           />}
         </aside>

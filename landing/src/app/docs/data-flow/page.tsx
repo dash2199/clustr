@@ -13,9 +13,6 @@ export default function DataFlowPage() {
           agent spawns one programmatically)
         </li>
         <li>
-          Clustr takes a git snapshot of your code for safe rollback
-        </li>
-        <li>
           Clustr launches the AI (Claude or Codex) in its own terminal with
           your task and collaboration tools
         </li>

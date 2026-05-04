@@ -42,7 +42,6 @@ Clustr gives each agent a focused workspace and a shared coordination layer:
 - **Live work dashboard** — see agents, conversations, file changes, and progress in one place
 - **Your own command terminal** — run your own commands in the same project folder without the AI seeing them
 - **Claude + Codex support** — run different agent providers side by side
-- **Git checkpoints** — checkpoint before agent work and roll back if needed
 - **Mobile access** — pair a phone with a QR code and monitor your swarm away from your desk
 
 ## How It Works

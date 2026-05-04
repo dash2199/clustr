@@ -43,8 +43,8 @@ export default function IntroductionPage() {
           message feed, context viewer, and file change tracking
         </li>
         <li>
-          <strong>Git checkpoints & rollback</strong> — auto-snapshots before
-          each agent starts, one-click rollback if things go wrong
+          <strong>Your own command terminal</strong> — run your own commands in
+          an agent&apos;s project folder without sending them to the AI
         </li>
         <li>
           <strong>Rules</strong> — a shared rules file that every agent

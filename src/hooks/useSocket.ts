@@ -11,7 +11,6 @@ export interface Agent {
   current_task: string | null;
   last_seen: string;
   created_at: string;
-  checkpoint_hash: string | null;
   agent_cwd: string | null;
   total_tokens: number;
   total_cost: number;

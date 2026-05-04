@@ -25,7 +25,6 @@ db.exec(`
     current_task TEXT,
     last_seen TEXT DEFAULT (datetime('now')),
     created_at TEXT DEFAULT (datetime('now')),
-    checkpoint_hash TEXT,
     agent_cwd TEXT,
     total_tokens INTEGER DEFAULT 0,
     total_cost REAL DEFAULT 0
@@ -50,7 +49,6 @@ db.exec(`
 
 // Migrations for new columns on existing tables
 const migrations = [
-  'ALTER TABLE agents ADD COLUMN checkpoint_hash TEXT',
   'ALTER TABLE agents ADD COLUMN agent_cwd TEXT',
   'ALTER TABLE agents ADD COLUMN total_tokens INTEGER DEFAULT 0',
   'ALTER TABLE agents ADD COLUMN total_cost REAL DEFAULT 0',
@@ -68,7 +66,7 @@ export function insertAgent(id: string, name: string, service: string, task: str
   stmtInsertAgent.run(id, name, service, task, pid);
 }
 
-export function updateAgent(id: string, fields: Partial<{ status: string; last_seen: string; current_task: string; pid: number; checkpoint_hash: string; agent_cwd: string; total_tokens: number; total_cost: number }>) {
+export function updateAgent(id: string, fields: Partial<{ status: string; last_seen: string; current_task: string; pid: number; agent_cwd: string; total_tokens: number; total_cost: number }>) {
   const sets: string[] = [];
   const vals: unknown[] = [];
   for (const [k, v] of Object.entries(fields)) {

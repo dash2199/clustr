@@ -10,7 +10,6 @@ import os from 'os';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import { insertAgent, updateAgent } from './db.js';
-import { createCheckpoint } from './git.js';
 import { AGENT_TYPES, isValidServiceType, type ServiceType } from './agent-types.js';
 import type { Server as SocketServer } from 'socket.io';
 import { appendLogLine, captureLogChunk, flushLogRemainder } from './log-buffer.js';
@@ -134,12 +133,6 @@ export function spawnAgent(
   
   // Always set agent_cwd so file attribution works
   updateAgent(id, { agent_cwd: cwd });
-  
-  createCheckpoint(cwd, name).then((hash) => {
-    if (hash) {
-      updateAgent(id, { checkpoint_hash: hash });
-    }
-  }).catch(() => {});
 
   const systemPrompt = agentType.buildPrompt({ name, id, task });
 

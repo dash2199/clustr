@@ -65,9 +65,9 @@ const features = [
     ),
   },
   {
-    title: "Git Checkpoints & Rollback",
+    title: "Your Own Command Terminal",
     description:
-      "Auto-checkpoints before each agent starts. Review diffs and roll back any agent's changes with a single click if things go sideways.",
+      "Open a separate terminal in an agent's project folder to run your own commands without sending them to the AI.",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
         <polyline points="16 18 22 12 16 6" />

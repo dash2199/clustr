@@ -13,7 +13,7 @@ import { initFileWatcher, startWatching, getFileChanges, clearFileChanges } from
 import { initLogBuffer, getLogs, clearLogs, type LogSource } from './log-buffer.js';
 import { startCommandOutputTailing, stopCommandOutputTailing } from './command-output-tailer.js';
 import { initUserShell, startUserShell, stopUserShell, writeToUserShell, resizeUserShell, getUserShellScrollback } from './user-shell.js';
-import { getAgentDiff, rollbackToCheckpoint, listBranches } from './git.js';
+import { listBranches } from './git.js';
 import { isGhAvailable, getRepoInfo, getRepoPRs, getPRDetail } from './github.js';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
@@ -289,32 +289,6 @@ app.get('/api/agents/:id/cost', (req, res) => {
     return;
   }
   res.json({ total_tokens: agent.total_tokens || 0, total_cost: agent.total_cost || 0 });
-});
-
-// --- Git routes ---
-
-app.get('/api/agents/:id/diff', async (req, res) => {
-  const agent = getAgent(req.params.id);
-  if (!agent || !agent.checkpoint_hash || !agent.agent_cwd) {
-    res.json({ diff: '' });
-    return;
-  }
-  const diff = await getAgentDiff(agent.agent_cwd as string, agent.checkpoint_hash as string);
-  res.json({ diff });
-});
-
-app.post('/api/agents/:id/rollback', async (req, res) => {
-  const agent = getAgent(req.params.id);
-  if (!agent || !agent.checkpoint_hash || !agent.agent_cwd) {
-    res.status(400).json({ error: 'No checkpoint available for this agent' });
-    return;
-  }
-  const result = await rollbackToCheckpoint(agent.agent_cwd as string, agent.checkpoint_hash as string);
-  if (result.success) {
-    res.json({ status: 'rolled_back', message: result.message });
-  } else {
-    res.status(400).json({ error: result.message });
-  }
 });
 
 // --- File changes routes ---

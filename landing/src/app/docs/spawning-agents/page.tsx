@@ -57,11 +57,6 @@ export default function SpawningAgentsPage() {
       <h2>What happens at spawn</h2>
       <ol>
         <li>
-          A <strong>git checkpoint</strong> is taken in the working directory
-          (if it&apos;s a git repo), so you can roll back the agent&apos;s
-          changes later
-        </li>
-        <li>
           Clustr configures the agent with collaboration tools and instructions
         </li>
         <li>
@@ -90,12 +85,8 @@ export default function SpawningAgentsPage() {
           entirely
         </li>
         <li>
-          <strong>View diff</strong> — see exactly what files the agent changed
-          since it started
-        </li>
-        <li>
-          <strong>Rollback</strong> — undo all of the agent&apos;s changes and
-          restore your code to how it was before the agent started
+          <strong>User Shell</strong> — open your own terminal in the same
+          project folder when you want to run commands yourself
         </li>
       </ul>
     </>
