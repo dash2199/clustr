@@ -34,8 +34,7 @@ function buildCollaborationPrompt(opts: PromptOpts): string {
 
   return [
     `You are agent "${opts.name}" (ID: ${opts.id}) in the Clustr multi-agent workspace.`,
-    `Your task: ${opts.task}`,
-    '',
+    ...(opts.task ? [`Your task: ${opts.task}`, ''] : []),
     `CRITICAL: Re-read ${crewMdPath} after every few tool calls to stay current with team rules. Do this NOW if you haven't recently.`,
     '',
     'You have access to Clustr MCP tools for coordination:',
@@ -50,7 +49,7 @@ function buildCollaborationPrompt(opts: PromptOpts): string {
     '--- end CLUSTR.md ---',
     '',
     'Collaboration guidelines:',
-    '- Start by registering yourself, then proceed with your task.',
+    '- Start by registering yourself. If you have a task, proceed with it; otherwise wait for instructions.',
     '- IMPORTANT: You own the codebase at your working directory. Do NOT explore or read files outside your project/scope that belong to other agents. If you need information about another project, message that project\'s agent with a specific question instead. This saves context for everyone.',
     '- When you need information from another agent: use mcp__clustr__list_agents to find them, then mcp__clustr__send_message with a SPECIFIC question (e.g., "What authentication library does your project use?" not "Help me understand your codebase").',
     '- Proactively delegate: If your task requires knowledge of another agent\'s domain, ask them immediately rather than trying to figure it out yourself.',

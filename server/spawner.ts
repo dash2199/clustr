@@ -130,9 +130,11 @@ export function spawnAgent(
   insertAgent(id, name, service, task, null);
 
   const cwd = options?.cwd || process.cwd();
-  
-  // Always set agent_cwd so file attribution works
-  updateAgent(id, { agent_cwd: cwd });
+
+  // Always set agent_cwd so file attribution works.
+  // Pre-register as 'running' so the agent is visible immediately without
+  // waiting for Claude to call mcp__clustr__register_agent.
+  updateAgent(id, { agent_cwd: cwd, status: 'running' });
 
   const systemPrompt = agentType.buildPrompt({ name, id, task });
 
@@ -225,9 +227,9 @@ export function spawnAgent(
   const sendTask = () => {
     if (taskSent) return;
     taskSent = true;
-    // For claude, write the task into the PTY prompt
+    // For claude, write the task into the PTY prompt (skip if no task)
     // For codex exec, the task is already in the args — just mark as sent
-    if (service === 'claude') {
+    if (service === 'claude' && task.trim()) {
       submitClaudeTask(shell, id, task);
     }
   };

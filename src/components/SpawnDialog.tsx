@@ -35,7 +35,7 @@ export default function SpawnDialog({ onSpawn, onClose, initialMode = 'spawn', e
       const projectName = cwd.trim().split('/').filter(Boolean).pop() || 'project';
       onSpawn(
         name.trim() || projectName,
-        task.trim() || `Work on the project at ${cwd.trim()}. Explore the codebase and wait for instructions.`,
+        task.trim(),
         cwd.trim(),
         service,
       );
@@ -119,7 +119,7 @@ export default function SpawnDialog({ onSpawn, onClose, initialMode = 'spawn', e
               <textarea
                 value={task}
                 onChange={(e) => setTask(e.target.value)}
-                placeholder="Explore the codebase and wait for instructions..."
+                placeholder="Leave blank to register with Clustr and wait for instructions…"
                 rows={3}
               />
             </label>

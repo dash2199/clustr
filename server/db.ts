@@ -57,6 +57,9 @@ for (const sql of migrations) {
   try { db.prepare(sql).run(); } catch { /* column already exists */ }
 }
 
+// Clear legacy verbose default task strings written by older versions
+db.prepare(`UPDATE agents SET task = '' WHERE task LIKE 'Work on the project at%'`).run();
+
 // --- Agent queries ---
 
 const stmtInsertAgent = db.prepare(
