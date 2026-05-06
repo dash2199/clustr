@@ -15,7 +15,7 @@ export function sendMessage(from: string, to: string, content: string) {
 
   const sender = getAgent(from);
   const fromName = (sender?.name as string) || from;
-  notifyAgent(to, fromName);
+  notifyAgent(to, fromName, content);
 
   return msg;
 }

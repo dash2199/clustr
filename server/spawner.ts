@@ -246,12 +246,14 @@ export function writeToAgent(id: string, data: string): boolean {
   return true;
 }
 
-export function notifyAgent(id: string, fromName: string): boolean {
+export function notifyAgent(id: string, fromName: string, content?: string): boolean {
   const agent = runningAgents.get(id);
   if (!agent) return false;
-  const hint = `You have a new message from ${fromName}. Use mcp__clustr__read_messages to read and respond.`;
+  const text = content
+    ? `Message from ${fromName}: ${content}`
+    : `You have a new message from ${fromName}. Use mcp__clustr__read_messages to read and respond.`;
   setTimeout(() => {
-    agent.pty.write(hint + '\r');
+    agent.pty.write(text + '\r');
   }, 300);
   return true;
 }
