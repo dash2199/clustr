@@ -1,6 +1,6 @@
 {
   "name": "clustr-ai",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "description": "Local multi-agent workspace for Claude Code and Codex agents that collaborate across your codebase",
   "license": "Apache-2.0",
   "author": "Clustr",
