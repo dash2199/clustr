@@ -242,7 +242,9 @@ export function spawnAgent(
 export function writeToAgent(id: string, data: string): boolean {
   const agent = runningAgents.get(id);
   if (!agent) return false;
-  agent.pty.write(data);
+  // Escape any in-progress TUI state before injecting input.
+  agent.pty.write('\x1b');
+  setTimeout(() => agent.pty.write(data), 600);
   return true;
 }
 
@@ -252,9 +254,12 @@ export function notifyAgent(id: string, fromName: string, content?: string): boo
   const text = content
     ? `Message from ${fromName}: ${content}`
     : `You have a new message from ${fromName}. Use mcp__clustr__read_messages to read and respond.`;
+  // Press Escape to interrupt any in-progress TUI state, wait for it to settle,
+  // then inject the message text followed by Enter.
+  agent.pty.write('\x1b');
   setTimeout(() => {
     agent.pty.write(text + '\r');
-  }, 300);
+  }, 600);
   return true;
 }
 
