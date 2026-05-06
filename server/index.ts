@@ -10,6 +10,7 @@ import { initBroker, sendMessage, readMessages, broadcastMessage, getAllMessages
 import { initContext, readContext, writeContext, removeContext } from './context.js';
 import { initCrewMd, readCrewMd, writeCrewMd } from './crewmd.js';
 import { initFileWatcher, startWatching, getFileChanges, clearFileChanges } from './filewatcher.js';
+import { readFileCached, invalidateFile, getFileCacheStats, clearFileCacheAll } from './file-cache.js';
 import { initLogBuffer, getLogs, clearLogs, type LogSource } from './log-buffer.js';
 import { startCommandOutputTailing, stopCommandOutputTailing } from './command-output-tailer.js';
 import { initUserShell, startUserShell, stopUserShell, writeToUserShell, resizeUserShell, getUserShellScrollback } from './user-shell.js';
@@ -301,6 +302,45 @@ app.get('/api/file-changes', (req, res) => {
 app.delete('/api/file-changes', (_req, res) => {
   clearFileChanges();
   io.emit('file:changes:cleared');
+  res.json({ status: 'cleared' });
+});
+
+// --- File cache routes ---
+
+app.post('/api/file-cache/read', (req, res) => {
+  try {
+    const { path: filePath, offset, limit } = req.body;
+    if (!filePath) {
+      res.status(400).json({ error: 'Missing path' });
+      return;
+    }
+    const result = readFileCached(filePath, offset, limit);
+    res.json(result);
+  } catch (err: unknown) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/api/file-cache/invalidate', (req, res) => {
+  try {
+    const { path: filePath } = req.body;
+    if (!filePath) {
+      res.status(400).json({ error: 'Missing path' });
+      return;
+    }
+    const removed = invalidateFile(filePath);
+    res.json({ status: removed ? 'invalidated' : 'not_cached' });
+  } catch (err: unknown) {
+    res.status(400).json({ error: (err as Error).message });
+  }
+});
+
+app.get('/api/file-cache/stats', (_req, res) => {
+  res.json(getFileCacheStats());
+});
+
+app.delete('/api/file-cache', (_req, res) => {
+  clearFileCacheAll();
   res.json({ status: 'cleared' });
 });
 

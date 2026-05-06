@@ -45,6 +45,15 @@ db.exec(`
     updated_by TEXT,
     updated_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS file_cache (
+    file_path TEXT PRIMARY KEY,
+    content TEXT NOT NULL,
+    mtime_ms INTEGER NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    cached_at TEXT DEFAULT (datetime('now')),
+    hit_count INTEGER DEFAULT 0
+  );
 `);
 
 // Migrations for new columns on existing tables
@@ -160,6 +169,50 @@ const stmtUpsertContext = db.prepare(
 );
 export function setContext(key: string, value: string, updatedBy: string) {
   stmtUpsertContext.run(key, value, updatedBy);
+}
+
+// --- File cache queries ---
+
+const stmtGetCachedFile = db.prepare(
+  `SELECT * FROM file_cache WHERE file_path = ?`
+);
+export function getCachedFile(filePath: string) {
+  return stmtGetCachedFile.get(filePath) as { file_path: string; content: string; mtime_ms: number; size_bytes: number; cached_at: string; hit_count: number } | undefined;
+}
+
+const stmtUpsertFileCache = db.prepare(
+  `INSERT INTO file_cache (file_path, content, mtime_ms, size_bytes, cached_at, hit_count)
+   VALUES (?, ?, ?, ?, datetime('now'), 0)
+   ON CONFLICT(file_path) DO UPDATE SET content = excluded.content, mtime_ms = excluded.mtime_ms, size_bytes = excluded.size_bytes, cached_at = datetime('now'), hit_count = 0`
+);
+export function upsertFileCache(filePath: string, content: string, mtimeMs: number, sizeBytes: number) {
+  stmtUpsertFileCache.run(filePath, content, mtimeMs, sizeBytes);
+}
+
+const stmtBumpHitCount = db.prepare(
+  `UPDATE file_cache SET hit_count = hit_count + 1 WHERE file_path = ?`
+);
+export function bumpCacheHitCount(filePath: string) {
+  stmtBumpHitCount.run(filePath);
+}
+
+const stmtDeleteCachedFile = db.prepare(
+  `DELETE FROM file_cache WHERE file_path = ?`
+);
+export function deleteCachedFile(filePath: string) {
+  stmtDeleteCachedFile.run(filePath);
+}
+
+const stmtGetCacheStats = db.prepare(
+  `SELECT COUNT(*) as entries, SUM(size_bytes) as total_bytes, SUM(hit_count) as total_hits FROM file_cache`
+);
+export function getCacheStats() {
+  return stmtGetCacheStats.get() as { entries: number; total_bytes: number; total_hits: number };
+}
+
+const stmtClearFileCache = db.prepare(`DELETE FROM file_cache`);
+export function clearFileCache() {
+  stmtClearFileCache.run();
 }
 
 export default db;

@@ -43,6 +43,9 @@ function buildCollaborationPrompt(opts: PromptOpts): string {
     '- mcp__clustr__send_message / mcp__clustr__read_messages — communicate',
     '- mcp__clustr__read_context / mcp__clustr__write_context — shared state',
     '- mcp__clustr__spawn_agent — create new agents',
+    '- mcp__clustr__read_file_cached — READ FILES THROUGH THIS instead of the built-in Read tool. It uses a shared cache across all agents — if another agent already read the file and it hasn\'t changed, you get it instantly without re-reading from disk. Supports offset/limit for partial reads.',
+    '- mcp__clustr__invalidate_file_cache — call after editing a file so other agents get the fresh version',
+    '- mcp__clustr__file_cache_stats — check cache usage',
     '',
     '--- CLUSTR.md (current snapshot) ---',
     crewMdContent.trim(),
@@ -51,6 +54,7 @@ function buildCollaborationPrompt(opts: PromptOpts): string {
     'Collaboration guidelines:',
     '- Start by registering yourself. If you have a task, proceed with it; otherwise wait for instructions.',
     '- IMPORTANT: You own the codebase at your working directory. Do NOT explore or read files outside your project/scope that belong to other agents. If you need information about another project, message that project\'s agent with a specific question instead. This saves context for everyone.',
+    '- IMPORTANT: Always use mcp__clustr__read_file_cached instead of the built-in Read tool. It shares a cache across all agents, so if another agent already read the same file, you get it for free. After editing any file, call mcp__clustr__invalidate_file_cache on it.',
     '- When you need information from another agent: use mcp__clustr__list_agents to find them, then mcp__clustr__send_message with a SPECIFIC question (e.g., "What authentication library does your project use?" not "Help me understand your codebase").',
     '- Proactively delegate: If your task requires knowledge of another agent\'s domain, ask them immediately rather than trying to figure it out yourself.',
     '- Before starting work, check mcp__clustr__read_context for any shared knowledge that other agents have already contributed.',
@@ -72,7 +76,7 @@ const claudeConfig: AgentTypeConfig = {
       '--append-system-prompt', opts.systemPrompt,
       '--mcp-config', opts.mcpConfigPath,
       '--allowedTools',
-      'mcp__clustr__register_agent,mcp__clustr__ping,mcp__clustr__list_agents,mcp__clustr__send_message,mcp__clustr__read_messages,mcp__clustr__read_context,mcp__clustr__write_context,mcp__clustr__spawn_agent,Bash,Read,Edit,Write,Glob,Grep',
+      'mcp__clustr__register_agent,mcp__clustr__ping,mcp__clustr__list_agents,mcp__clustr__send_message,mcp__clustr__read_messages,mcp__clustr__read_context,mcp__clustr__write_context,mcp__clustr__spawn_agent,mcp__clustr__read_file_cached,mcp__clustr__invalidate_file_cache,mcp__clustr__file_cache_stats,Bash,Read,Edit,Write,Glob,Grep',
     ];
   },
 

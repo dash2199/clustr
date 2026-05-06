@@ -183,6 +183,53 @@ server.tool(
 );
 
 server.tool(
+  'read_file_cached',
+  'Read a file with cross-agent caching. If another agent already read this file and it hasn\'t changed on disk, returns the cached version instantly — saving tokens and time. Prefer this over the built-in Read tool for files that multiple agents might access.',
+  {
+    path: z.string().describe('Absolute or relative file path to read'),
+    offset: z.number().optional().describe('Start line (1-indexed). Omit to read from beginning.'),
+    limit: z.number().optional().describe('Number of lines to read. Omit to read entire file.'),
+  },
+  async ({ path, offset, limit }) => {
+    const result = await apiFetch('/api/file-cache/read', {
+      method: 'POST',
+      body: JSON.stringify({ path, offset, limit }),
+    });
+    if (result.error) {
+      return { content: [{ type: 'text' as const, text: `Error: ${result.error}` }], isError: true };
+    }
+    const header = `File: ${result.filePath} (${result.lineCount} lines, ${result.sizeBytes} bytes${result.cached ? ', served from cache' : ''})`;
+    return { content: [{ type: 'text' as const, text: `${header}\n${result.content}` }] };
+  }
+);
+
+server.tool(
+  'invalidate_file_cache',
+  'Remove a file from the shared cache (e.g. after you edited it). Other agents will re-read the fresh version on next access.',
+  {
+    path: z.string().describe('File path to invalidate from cache'),
+  },
+  async ({ path }) => {
+    const result = await apiFetch('/api/file-cache/invalidate', {
+      method: 'POST',
+      body: JSON.stringify({ path }),
+    });
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
+  }
+);
+
+server.tool(
+  'file_cache_stats',
+  'Show shared file cache statistics (entries, total size, hit count)',
+  {},
+  async () => {
+    const result = await apiFetch('/api/file-cache/stats');
+    const text = `Cache: ${result.entries ?? 0} files, ${Math.round((result.total_bytes ?? 0) / 1024)} KB, ${result.total_hits ?? 0} total hits`;
+    return { content: [{ type: 'text' as const, text }] };
+  }
+);
+
+server.tool(
   'spawn_agent',
   'Spawn a new agent in the Clustr workspace',
   {
