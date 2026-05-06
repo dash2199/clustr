@@ -252,9 +252,10 @@ export function notifyAgent(id: string, fromName: string, content?: string): boo
   const text = content
     ? `Message from ${fromName}: ${content}`
     : `You have a new message from ${fromName}. Use mcp__clustr__read_messages to read and respond.`;
+  agent.pty.write(text);
   setTimeout(() => {
-    agent.pty.write(text + '\r');
-  }, 300);
+    agent.pty.write('\r');
+  }, 100);
   return true;
 }
 
